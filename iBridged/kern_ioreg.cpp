@@ -18,8 +18,55 @@ const IBGD::DetectedProcess IOR::filteredProcs[] = {
     {"SoftwareUpdateNo", 0},
     {"launchd", 0}
     
-    /* launchd access apple-coprocessor-version for whatever reason. i suspect it has something to do with Cryptexes + libignition. */
+    /* launchd accesses apple-coprocessor-version for whatever reason. i suspect it has something to do with Cryptexes + libignition. */
 };
+
+/*
+ * Other processes known to try and access apple-coprocessor-version:
+ * - systemsoundserverd (probably for the iBridge Audio communication, see BridgeAudioCommunication.kext + BridgeAudioController.kext)
+ * - AppleIDSettings
+ * - akd
+ *
+ * In-Kernel clients:
+ * - AppleKeyStore
+ * - AppleCredentialManager
+ * - AppleImage4 (this specifically checks for the T2 to read the set Security Policy)
+ */
+
+/*
+ * How did we get here?
+ *
+ * The OTA process in macOS has sort of buggered itself for the weird configuration of Hackintosh systems using ASB.
+ *
+ * The Image4 library, be it `com.apple.security.AppleImage4` (/System/Library/Extensions/AppleImage4.kext) or the userspace
+ * library (`libimg4.dylib` or `libimage4.dylib`) has a set of Image4 'chips'
+ *
+ * These 'chip' structures provide runtime data on the security policy of the Mac, alongside parameters for Image4 decoding.
+ *
+ * Validation of Image4 files require the parameters to match the device; which is where things get weird on Hackintoshes.
+ *
+ * As of some unknown version of macOS, Apple has four x86 'chip' types when evaluating non-cryptex Image4 files:
+ * - img4_chip_x86_ap (Equivalent to the Full Security setting)
+ * - img4_chip_x86_ap_medium (Equivalent to the Medium Security setting)
+ * - img4_chip_x86_ap_void (Equivalent to the No Security setting)
+ * - img4_chip_x86 (x86legacyap)
+ *
+ * AppleImage4/libimg4/libimage4 uses the `apple-coprocessor-version` variable to determine which Image4 'chip' to use, defaulting to
+ * `img4_chip_x86` when no 
+ *
+ * When sealing the system volume, patchd uses a root hash encased in an Image4 file, which is ran through the function `img4_firmware_execute`
+ * On systems using Apple Secure Boot, this would break the entire OTA process if RestrictEvents' SBVMM was not used.
+ *
+ * The specific log is as follows:
+ * patchd: patchd_store_failure_info(879): setting ota-failure-reason=MSU 1130 (Failed to verify against canonical metadata);NSPOSIXErrorDomain 13 (img4_firmware_execute failed);
+ *
+ * Thankfully, XNU provides headers for the Image4 library in the EXTERNAL_HEADERS folder.
+ *
+ * Code 13 is actually a POSIX errno_t code, EACCES, which the header documents this code meaning that 
+ * 'The given chip does not specify the constraints of the attached manifest', indicating a mismatch in the Image4 'chip'
+ *
+ * And thus is why this kext was created.
+ */
 
 static bool isProcFiltered(const char *procName) {
     if (!procName) {

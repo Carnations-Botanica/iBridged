@@ -17,6 +17,7 @@ static const UInt8 kBridgeOSInstallBridgeCheckFind15[] = {
     0x09, 0xc1,                         // or      ecx, eax
     0x41, 0x0f, 0x94, 0xc6              // sete    r14b
 };
+/* This is the weirdest compiler optimisation ever, but if it makes the signature more unique I'll take it for the sake of dyld patching. */
 
 static const UInt8 kBridgeOSInstallBridgeCheckMask15[] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0xFF,
@@ -33,7 +34,11 @@ static const UInt8 kBridgeOSInstallBridgeCheckReplace15[] = {
     0x41, 0x0f, 0x94, 0xc6              // sete    r14b
 };
 
-static DYLD::_cs_validate_range_t _original_cs_validate_page = nullptr;
+/* Should I even bother with older versions of macOS? Sonoma 14.4+ benefit from this patch but I wonder if it'll do anything on Catalina or Big Sur. */
+/* Setting apple-coprocessor-version makes the update frameworks send a JxxxyAP formatted HWModelStr to Pallas, essentially fixing recieving OTAs */
+/* Anywho, I have a sig for BridgeOSInstall 10.15 if I need it. */
+
+static DYLD::_cs_validate_page_t _original_cs_validate_page = nullptr;
 
 void ibgd_cs_validate_page(vnode *vp, memory_object_t pager, memory_object_offset_t page_offset,
                            const void *data, int *validated_p, int *tainted_p, int *nx_p) {

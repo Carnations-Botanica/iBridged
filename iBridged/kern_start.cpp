@@ -42,20 +42,20 @@ void IBGD::init() {
     // This is messy because internally, we're debugging each version independently
     if (IBGD::darwinMajor >= KernelVersion::Tahoe) {
         DBGLOG(MODULE_INIT, "Detected macOS Tahoe (26.x) or newer.");
-        DBGLOG(MODULE_WARN, "This version has not been verified to work with iBridged!");
-        DBGLOG(MODULE_INIT, "Registering PHTM::solveSysCtlChildrenAddr with onPatcherLoadForce anyway.");
+        DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
         lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
     } else if (IBGD::darwinMajor >= KernelVersion::Sequoia) {
         DBGLOG(MODULE_INIT, "Detected macOS Sequoia (15.x).");
-        DBGLOG(MODULE_INIT, "Registering PHTM::solveSysCtlChildrenAddr with onPatcherLoadForce.");
+        DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
         lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
     } else if (IBGD::darwinMajor >= KernelVersion::Sonoma) {
         DBGLOG(MODULE_INIT, "Detected macOS Sonoma (14.x).");
-        DBGLOG(MODULE_INIT, "Registering PHTM::solveSysCtlChildrenAddr with onPatcherLoadForce.");
+        DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
         lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
     } else {
-        DBGLOG(MODULE_ERROR, "Detected an unsupported version of macOS (older than Sonoma).");
-        panic(MODULE_LONG, "Detected an unsupported version of macOS (older than Sonoma).");
+        SYSLOG(MODULE_ERROR, "Detected an unsupported version of macOS (older than Sonoma).");
+        /* ZORMEISTER: Don't even bother panicking here. We haven't asked Lilu to run our callback. */
+        /* ZORMEISTER: I kind of need this to test older versions anyways; at least the OTA process. */
     }
 }
 
