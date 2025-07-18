@@ -44,16 +44,36 @@ void IBGD::init() {
         DBGLOG(MODULE_INIT, "Detected macOS Tahoe (26.x) or newer.");
         DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
         lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
-    } else if (IBGD::darwinMajor >= KernelVersion::Sequoia) {
+    } else if (IBGD::darwinMajor == KernelVersion::Sequoia) {
         DBGLOG(MODULE_INIT, "Detected macOS Sequoia (15.x).");
         DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
         lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
-    } else if (IBGD::darwinMajor >= KernelVersion::Sonoma) {
+    } else if (IBGD::darwinMajor == KernelVersion::Sonoma) {
         DBGLOG(MODULE_INIT, "Detected macOS Sonoma (14.x).");
         DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
         lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
+    } else if (IBGD::darwinMajor == KernelVersion::Ventura) {
+        DBGLOG(MODULE_INIT, "Detected macOS Ventura (13.x).");
+        DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
+        lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
+    } else if (IBGD::darwinMajor == KernelVersion::Monterey) {
+        DBGLOG(MODULE_INIT, "Detected macOS Monterey (12.x).");
+        DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
+        lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
+    } else if (IBGD::darwinMajor == KernelVersion::BigSur) {
+        DBGLOG(MODULE_INIT, "Detected macOS Big Sur (11.x).");
+        DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
+        lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
+    } else if (IBGD::darwinMajor == KernelVersion::Catalina) {
+        DBGLOG(MODULE_INIT, "Detected macOS Catalina (10.15.x).");
+        DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
+        lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
+    } else if (IBGD::darwinMajor == KernelVersion::Mojave) {
+        DBGLOG(MODULE_INIT, "Detected macOS Mojave (10.14.x).");
+        DBGLOG(MODULE_INIT, "Registering IBGD::onPatcherLoad with onPatcherLoadForce.");
+        lilu.onPatcherLoadForce(&IBGD::onPatcherLoad);
     } else {
-        SYSLOG(MODULE_ERROR, "Detected an unsupported version of macOS (older than Sonoma).");
+        SYSLOG(MODULE_ERROR, "Detected an unsupported version of macOS (older than Mojave).");
         /* ZORMEISTER: Don't even bother panicking here. We haven't asked Lilu to run our callback. */
         /* ZORMEISTER: I kind of need this to test older versions anyways; at least the OTA process. */
     }
@@ -88,7 +108,7 @@ PluginConfiguration ADDPR(config) {
     arrsize(bootargDebug),
     bootargBeta,
     arrsize(bootargBeta),
-    KernelVersion::Sonoma,
+    KernelVersion::Mojave,
     KernelVersion::Tahoe,
     []() {
         ibgdInstance.init();

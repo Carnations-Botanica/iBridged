@@ -20,6 +20,8 @@ public:
     
     using _cs_validate_page_t = void (*)(vnode *vp, memory_object_t pager, memory_object_offset_t page_offset,
                                       const void *data, int *validated_p, int *tainted_p, int *nx_p);
+    using _cs_validate_range_t = void (*)(vnode *vp, memory_object_t pager, memory_object_offset_t offset,
+                                          const void *data, vm_size_t size, unsigned *result);
 };
 
 #endif /* kern_dyld_hpp */
