@@ -49,7 +49,7 @@ A [Lilu](https://github.com/acidanthera/Lilu) plug-in that patches Apple's `Brid
 <h1 align="center">Special Thanks!</h1>
 <br>
 
-[<b>Zormeister</b>](https://github.com/Zormeister) - Lead Developer.
+[<b>Samuel Zormeister</b>](https://github.com/samuelfzormeister) - Lead Developer.
 
 [<b>RoyalGraphX</b>](https://github.com/RoyalGraphX) - Developer of Phantom, which was used for early experiments alongside being a foundation for iBridged.
 
