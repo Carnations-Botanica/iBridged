@@ -145,6 +145,18 @@ OSObject *ibgd_IORegistryEntry_getProperty_os_symbol(const IORegistryEntry *that
     return original_property;
 }
 
+/*
+ * technical note:
+ * WhateverGreen uses kpatcher.routeMultiple over kpatcher.routeMultipleLong, meaning that instead of using a long trampoline
+ * Lilu implants a short trampoline. This is (probably) quicker, but any other potential users are gatekept, 
+ * which isn't preferrable for us.
+ *
+ * This is only triggered in WhateverGreen if it finds an AMD GPU in the local system, so dGPU-less Intel is unaffected.
+ * Same with Intel + NVIDIA, or AMD + NVIDIA, I believe.
+ *
+ * This is why I didn't find anything wrong in my own system, since I use my GPU without any kexts and since my
+ * Dell Optiplex doesn't have a dGPU of any sort.
+ */
 void IOR::init(KernelPatcher &Patcher) {
     
     DBGLOG(MODULE_IOR, "IOR::init(Patcher) called. IORegistry module is starting.");
