@@ -11,6 +11,11 @@ A [Lilu](https://github.com/acidanthera/Lilu) plug-in that patches Apple's `Brid
 
 ### Usage
 
+>[!IMPORTANT]
+> If you're using an AMD GPU in your system alongside WhateverGreen, iBridged and WhateverGreen will conflict due to using the same function to operate.
+>
+> To alleviate this, please use [the Carnations fork of WhateverGreen](https://github.com/Carnations-Botanica/WhateverGreen)
+
 **To use iBridged, you must be using [the latest version of Lilu](https://github.com/acidanthera/Lilu/releases) (atleast 1.7.0+ required) to properly load the plug-in.**
 
 1. Download the latest RELEASE or DEBUG from the Releases tab.
