@@ -66,6 +66,16 @@ const IBGD::DetectedProcess IOR::filteredProcs[] = {
  * 'The given chip does not specify the constraints of the attached manifest', indicating a mismatch in the Image4 'chip'
  *
  * And thus is why this kext was created.
+ *
+ * --- ADDENDUM (13/02/2026) ---
+ * Somewhere along the line, macOS also uses the iBridge TargetType (jXXXap) to identify the Mac on an update level.
+ * Tahoe, Sequoia and maybe earlier will fail on T2 SMBIOSes because it will report the <Model>X,Y value instead of the iBridge model.
+ * As a result of directly interfereing with softwareupdated, it also restores updating on T2 SMBIOSes without needing SBVMM too.
+ * The outcome is that OTAs can be completed without hassle on systems that don't do executable patching (eg: BlueToolFixup).
+ * Since softwareupdated is usually loaded early on, and is the primary source for updating, the chance of a patched dyld page being re-checked for a valid
+ * signature is unlikely, so it's a one-size fits all solution, I suppose. So I doubt we'll face crashes from the code signature enforcer crashing anything that uses
+ * BridgeOSInstall.framework in OS versions > 14.x, so no AppleSystemInfo.framework type crashes. I'm open to being proven wrong.
+ * I... didn't expect this? I guess. It's a win, I suppose.
  */
 
 static bool isProcFiltered(const char *procName) {
