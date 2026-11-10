@@ -11,17 +11,12 @@ A [Lilu](https://github.com/acidanthera/Lilu) plug-in that patches Apple's `Brid
 
 ### Usage
 
->[!IMPORTANT]
-> If you're using an AMD GPU in your system alongside WhateverGreen, iBridged and WhateverGreen will conflict due to using the same function to operate.
->
-> To alleviate this, please use [the Carnations fork of WhateverGreen](https://github.com/Carnations-Botanica/WhateverGreen)
-
 **To use iBridged, you must be using [the latest version of Lilu](https://github.com/acidanthera/Lilu/releases) (atleast 1.7.0+ required) to properly load the plug-in.**
 
 1. Download the latest RELEASE or DEBUG from the Releases tab.
-3. Drag/Drop into your OpenCore's Kexts folder.
-4. Use ProperTree to OC Snapshot and add the kext to your config.plist
-5. Boot macOS, verify the kernel extension is loaded with ``kextstat``.
+2. Drag/Drop into your OpenCore's Kexts folder.
+3. Use ProperTree to OC Snapshot and add the kext to your config.plist
+4. Boot macOS, verify the kernel extension is loaded with ``kextstat``.
 
 <h1 align="center">Contributing to the Project</h1>
 
