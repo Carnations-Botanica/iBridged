@@ -8,7 +8,6 @@
 #include "kern_ioreg.hpp"
 
 static IOR::_IORegistryEntry_getProperty_t original_IORegistryEntry_getProperty_os_symbol = nullptr;
-static IOR::_IORegistryEntry_getProperty_cstring_t original_IORegistryEntry_getProperty_cstring = nullptr;
 
 const IBGD::DetectedProcess IOR::filteredProcs[] = {
     {"ramrod", 0},
@@ -91,22 +90,6 @@ static bool isProcFiltered(const char *procName) {
     return false;
 }
 
-OSObject *ibgd_IORegistryEntry_getProperty_os_symbol(const IORegistryEntry *that, const OSSymbol *aKey);
-
-// This is the new hook for the getProperty(const char*) variant.
-OSObject *ibgd_IORegistryEntry_getProperty_cstring(const IORegistryEntry *that, const char *aKey) {
-    
-    const OSSymbol *symbolKey = OSSymbol::withCString(aKey);
-    OSObject *result = ibgd_IORegistryEntry_getProperty_os_symbol(that, symbolKey);
-    
-    if (symbolKey) {
-        const_cast<OSSymbol *>(symbolKey)->release();
-    }
-    return result;
-    
-}
-
-
 OSObject *ibgd_IORegistryEntry_getProperty_os_symbol(const IORegistryEntry *that, const OSSymbol *aKey) {
     
     // Always call the original function first to get the real property.
@@ -145,56 +128,20 @@ OSObject *ibgd_IORegistryEntry_getProperty_os_symbol(const IORegistryEntry *that
     return original_property;
 }
 
-/*
- * technical note:
- * WhateverGreen uses kpatcher.routeMultiple over kpatcher.routeMultipleLong, meaning that instead of using a long trampoline
- * Lilu implants a short trampoline. This is (probably) quicker, but any other potential users are gatekept, 
- * which isn't preferrable for us.
- *
- * This is only triggered in WhateverGreen if it finds an AMD GPU in the local system, so dGPU-less Intel is unaffected.
- * Same with Intel + NVIDIA, or AMD + NVIDIA, I believe.
- *
- * This is why I didn't find anything wrong in my own system, since I use my GPU without any kexts and since my
- * Dell Optiplex doesn't have a dGPU of any sort.
- */
 void IOR::init(KernelPatcher &Patcher) {
     
     DBGLOG(MODULE_IOR, "IOR::init(Patcher) called. IORegistry module is starting.");
 
-    // Route Requests for getProperty
-    KernelPatcher::RouteRequest requests[] = {
-        { "__ZNK15IORegistryEntry11getPropertyEPK8OSSymbol", ibgd_IORegistryEntry_getProperty_os_symbol, original_IORegistryEntry_getProperty_os_symbol },
-        { "__ZNK15IORegistryEntry11getPropertyEPKc", ibgd_IORegistryEntry_getProperty_cstring, original_IORegistryEntry_getProperty_cstring },
+    // Route Request for getProperty(const OSSymbol*) only.
+    // In XNU, getProperty(const char*) delegates directly to getProperty(const OSSymbol*).
+    // Hooking only the OSSymbol variant avoids conflicting with WhateverGreen's getProperty(const char*) hook on AMD GPUs.
+    KernelPatcher::RouteRequest request = {
+        "__ZNK15IORegistryEntry11getPropertyEPK8OSSymbol",
+        ibgd_IORegistryEntry_getProperty_os_symbol,
+        original_IORegistryEntry_getProperty_os_symbol
     };
 
-    // By default, we only patch the first, most critical function.
-    // Perform Safety Checks Before Attempting to Patch Both.
-    size_t request_count = 1;
-    
-    // Resolve the addresses of BOTH functions first.
-    mach_vm_address_t addr_os_symbol = Patcher.solveSymbol(KernelPatcher::KernelID, requests[0].symbol);
-    mach_vm_address_t addr_cstring = Patcher.solveSymbol(KernelPatcher::KernelID, requests[1].symbol);
-
-    if (!addr_os_symbol || !addr_cstring) {
-        DBGLOG(MODULE_ERROR, "Could not resolve one or both getProperty variants.");
-        return;
-    }
-
-    // Calculate the distance between the two functions in memory.
-    const int64_t min_safe_distance = 32;
-    int64_t functions_distance = (addr_os_symbol > addr_cstring) ? (addr_os_symbol - addr_cstring) : (addr_cstring - addr_os_symbol);
-    DBGLOG(MODULE_IOR, "Distance between getProperty variants is %lld bytes.", functions_distance);
-    
-    // --- Decide Whether to Patch One or Both Functions ---
-    if (functions_distance < min_safe_distance) {
-        DBGLOG(MODULE_WARN, "getProperty variants are too close. Patching only one to avoid multiroute panic.");
-    } else {
-        DBGLOG(MODULE_IOR, "Conditions are safe to patch both getProperty variants.");
-        request_count = 2;
-    }
-
-    // Perform the reRouting
-    if (!Patcher.routeMultipleLong(KernelPatcher::KernelID, requests, request_count)) {
+    if (!Patcher.routeMultipleLong(KernelPatcher::KernelID, &request, 1)) {
         DBGLOG(MODULE_ERROR, "Failed to apply IORegistry patches.");
         return;
     }
